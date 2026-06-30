@@ -1,0 +1,279 @@
+<div class="min-h-screen bg-gradient-to-br from-sky-100 to-rose-100 p-4 md:p-12 font-['Inter']">
+  <header class="text-center mb-10">
+    <h1 class="text-5xl font-extrabold text-indigo-700 leading-tight floating">
+      Career Path Resume Analyzer
+    </h1>
+    <p class="text-gray-600 mt-2 text-xl">
+      Professional AI-powered resume analysis with comprehensive insights
+    </p>
+  </header>
+
+  <main class="max-w-6xl mx-auto step-container relative">
+    <!-- Progress Bar Indicator -->
+    <div class="flex justify-between mb-12 relative">
+      <div [class.active]="currentStep === 1" class="step-indicator-item text-center">
+        <div class="step-circle">1</div>
+        <p class="mt-3 text-sm font-semibold" [class.text-indigo-700]="currentStep === 1" [class.text-gray-500]="currentStep !== 1">Target Role</p>
+      </div>
+      <div [class.active]="currentStep === 2" class="step-indicator-item text-center">
+        <div class="step-circle">2</div>
+        <p class="mt-3 text-sm font-semibold" [class.text-indigo-700]="currentStep === 2" [class.text-gray-500]="currentStep !== 2">Upload Resume</p>
+      </div>
+      <div [class.active]="currentStep === 3" class="step-indicator-item text-center">
+        <div class="step-circle">3</div>
+        <p class="mt-3 text-sm font-semibold" [class.text-indigo-700]="currentStep === 3" [class.text-gray-500]="currentStep !== 3">AI Analysis</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 1: Select Profession -->
+    <div *ngIf="currentStep === 1" class="step-slide slide-visible step-card professional-card border-t-8 border-indigo-500">
+      <h2 class="text-3xl font-extrabold text-gray-800 mb-6">🎯 Step 1: Select Your Target Role</h2>
+      <div class="max-w-xl mx-auto py-8">
+        <label class="block text-xl font-medium text-gray-700 mb-4">
+          Which profession should we analyze your resume against?
+        </label>
+        <select [(ngModel)]="selectedProfession" class="w-full p-4 border-2 border-indigo-300 rounded-xl text-lg bg-white focus:ring-indigo-500 focus:border-indigo-500 shadow-md transition duration-300 appearance-none pr-10">
+          <option value="">-- Choose Your Role --</option>
+          <option *ngFor="let r of roles" [value]="r">{{ getRoleDisplayName(r) }}</option>
+        </select>
+        <p *ngIf="professionError" class="text-sm text-red-600 mt-4 p-2 bg-red-50 border border-red-200 rounded-lg">
+          ⚠️ Please select a profession to unlock the next step.
+        </p>
+      </div>
+      <div class="mt-10 flex justify-end">
+        <button (click)="nextStep(2)" [disabled]="!selectedProfession" class="py-3 px-8 bg-indigo-600 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-indigo-700 transition duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:scale-100">
+          Next: Upload Resume &rarr;
+        </button>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: Upload Resume -->
+    <div *ngIf="currentStep === 2" class="step-slide slide-visible step-card professional-card border-t-8 border-emerald-500">
+      <h2 class="text-3xl font-extrabold text-gray-800 mb-6">📤 Step 2: Upload Your Resume</h2>
+      <div class="text-center p-10 border-4 border-dashed border-emerald-300 rounded-xl bg-gradient-to-br from-emerald-50 to-blue-50 max-w-2xl mx-auto shadow-inner">
+        <svg class="mx-auto h-16 w-16 text-emerald-600 floating" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 014 4v2m-5 4l-4-4m0 0l-4 4m4-4v12"></path>
+        </svg>
+        <p class="mt-5 text-lg text-gray-700 font-semibold">
+          We accept <strong>plain text (.txt)</strong> and <strong>PDF (.pdf)</strong> files
+        </p>
+        <p class="text-sm text-gray-500 mt-2">Our AI will analyze your resume comprehensively</p>
+        <input type="file" (change)="onFileSelected($event)" accept=".txt,.pdf" class="mt-8 block w-full text-base text-gray-600 file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-base file:font-bold file:bg-emerald-200 file:text-emerald-800 hover:file:bg-emerald-300 transition duration-300 cursor-pointer">
+        <p class="text-sm text-gray-500 mt-4 italic">{{ fileStatus }}</p>
+      </div>
+      <div class="mt-10 flex justify-between">
+        <button (click)="nextStep(1)" class="py-3 px-6 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition duration-300">
+          &larr; Back to Step 1
+        </button>
+        <button (click)="analyzeResume()" [disabled]="!selectedFile || loading" class="py-3 px-8 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-xl rounded-xl shadow-xl hover:from-indigo-700 hover:to-purple-700 transition duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100">
+          ✨ Analyze Resume Now
+        </button>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: Analysis Report -->
+    <div *ngIf="currentStep === 3" class="step-slide slide-visible step-card professional-card border-t-8 border-yellow-500">
+      <h2 class="text-3xl font-extrabold text-gray-800 mb-6">📊 Step 3: Comprehensive AI Analysis</h2>
+      <div class="custom-scrollbar" style="max-height: 70vh; overflow-y: auto;">
+        <!-- Loading animation -->
+        <div *ngIf="loading" class="flex flex-col items-center space-y-6 text-indigo-600 p-12 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-indigo-200">
+          <div class="relative">
+            <svg class="animate-spin h-16 w-16 pulse-ai" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center"><span class="text-lg font-bold">AI</span></div>
+          </div>
+          <span class="font-bold text-2xl loading-dots">Professional AI Analysis in Progress</span>
+          <div class="text-center">
+            <p class="text-sm text-gray-500 mb-2">Our advanced AI is performing a comprehensive analysis of your resume</p>
+            <div class="flex justify-center space-x-2">
+              <div class="w-2 h-2 bg-indigo-600 rounded-full animate-bounce"></div>
+              <div class="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+              <div class="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Report content (populated from backend or local fallback) -->
+        <div *ngIf="!loading && analysisResult" class="space-y-8">
+          <!-- Premium Header with Score Ring -->
+          <div class="mb-8 p-8 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 shadow-xl text-white professional-card">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+              <div class="text-center md:text-left mb-6 md:mb-0">
+                <h4 class="text-2xl font-semibold">Target Role: <span class="font-extrabold text-yellow-300">{{ getRoleDisplayName(analysisResult.role) }}</span></h4>
+                <p class="text-indigo-100 mt-2 text-lg">{{ getRoleDescription(analysisResult.role) }}</p>
+                <div class="mt-4 flex items-center justify-center md:justify-start">
+                  <svg class="h-5 w-5 text-yellow-300 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812z" clip-rule="evenodd"></path>
+                  </svg>
+                  <span class="text-yellow-200 text-sm">Professional Analysis</span>
+                </div>
+              </div>
+              <div class="flex flex-col items-center">
+                <div class="score-ring">
+                  <div class="score-ring-bg" [style.--score]="analysisResult.score + '%'"></div>
+                  <div class="score-ring-inner">{{ analysisResult.score }}%</div>
+                </div>
+                <div class="text-white text-sm mt-2">Overall Score</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Executive Summary -->
+          <div class="mb-8 p-6 professional-card rounded-2xl shadow-lg border-l-4 border-blue-500">
+            <h4 class="text-2xl font-bold text-blue-700 mb-4 flex items-center">
+              <svg class="h-6 w-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              📋 Executive Summary
+            </h4>
+            <p class="text-gray-700 text-lg leading-relaxed bg-blue-50 p-4 rounded-lg">{{ analysisResult.summary }}</p>
+          </div>
+
+          <!-- Comprehensive Scoring Dashboard (progress bars) -->
+          <div class="mb-8 professional-card p-6 rounded-2xl shadow-lg border-l-4 border-purple-500">
+            <h4 class="text-2xl font-bold text-purple-700 mb-6">📊 Comprehensive Scoring Dashboard</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div class="p-4 bg-white rounded-xl border border-gray-200">
+                <div class="flex justify-between items-center mb-2"><span class="font-semibold text-gray-700">ATS Score</span><span class="font-bold text-purple-700">{{ analysisResult.atsScore }}%</span></div>
+                <div class="progress-bar"><div class="progress-fill" [style.width]="analysisResult.atsScore + '%'"></div></div>
+              </div>
+              <div class="p-4 bg-white rounded-xl border border-gray-200">
+                <div class="flex justify-between items-center mb-2"><span class="font-semibold text-gray-700">Keyword Score</span><span class="font-bold text-purple-700">{{ analysisResult.keywordScore }}%</span></div>
+                <div class="progress-bar"><div class="progress-fill" [style.width]="analysisResult.keywordScore + '%'"></div></div>
+              </div>
+              <div class="p-4 bg-white rounded-xl border border-gray-200">
+                <div class="flex justify-between items-center mb-2"><span class="font-semibold text-gray-700">Format Score</span><span class="font-bold text-purple-700">{{ analysisResult.formatScore }}%</span></div>
+                <div class="progress-bar"><div class="progress-fill" [style.width]="analysisResult.formatScore + '%'"></div></div>
+              </div>
+              <div class="p-4 bg-white rounded-xl border border-gray-200">
+                <div class="flex justify-between items-center mb-2"><span class="font-semibold text-gray-700">Experience Score</span><span class="font-bold text-purple-700">{{ analysisResult.experienceScore }}%</span></div>
+                <div class="progress-bar"><div class="progress-fill" [style.width]="analysisResult.experienceScore + '%'"></div></div>
+              </div>
+              <div class="p-4 bg-white rounded-xl border border-gray-200">
+                <div class="flex justify-between items-center mb-2"><span class="font-semibold text-gray-700">JD Match Score</span><span class="font-bold text-purple-700">{{ analysisResult.jdMatchScore }}%</span></div>
+                <div class="progress-bar"><div class="progress-fill" [style.width]="analysisResult.jdMatchScore + '%'"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Two‑column layout (exactly as beloved) -->
+          <div class="grid grid-cols-1 xl:grid-cols-4 gap-8">
+            <!-- Sidebar: ATS & Missing Keywords -->
+            <div class="xl:col-span-1 space-y-6">
+              <div class="professional-card p-6 rounded-2xl shadow-xl border-t-8 border-green-500">
+                <h4 class="text-xl font-bold text-green-700 mb-4">🤖 ATS Compatibility</h4>
+                <div class="text-center mb-4"><div class="text-3xl font-black text-green-600">{{ analysisResult.atsScore }}%</div><div class="text-sm text-gray-600">ATS Score</div></div>
+                <p class="text-sm text-gray-700">Your resume shows {{ analysisResult.atsScore > 80 ? 'strong' : analysisResult.atsScore > 60 ? 'moderate' : 'weak' }} compatibility with applicant tracking systems.</p>
+              </div>
+              <div class="professional-card p-6 border border-yellow-200 rounded-2xl bg-yellow-50">
+                <h5 class="font-bold text-yellow-700 mb-3 flex items-center">
+                  <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  🔍 Critical Keywords to Add
+                </h5>
+                <div class="flex flex-wrap gap-2">
+                  <span *ngFor="let kw of splitPipeString(analysisResult.missingKeywords)" class="keyword-pill missing px-3 py-1 text-sm font-medium">{{ kw }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="xl:col-span-3 space-y-8">
+              <!-- Metrics cards -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="metric-card p-4 rounded-xl">
+                  <h5 class="font-bold text-green-700 mb-2">📈 Quantifiable Achievements</h5>
+                  <div class="text-2xl font-black text-green-600">{{ analysisResult.experienceScore }}%</div>
+                  <p class="text-sm text-gray-700 mt-2">Use of metrics and measurable results</p>
+                </div>
+                <div class="metric-card p-4 rounded-xl">
+                  <h5 class="font-bold text-green-700 mb-2">⚡ Action Verbs</h5>
+                  <div class="text-2xl font-black text-green-600">{{ analysisResult.formatScore }}%</div>
+                  <p class="text-sm text-gray-700 mt-2">Strong, active language usage</p>
+                </div>
+              </div>
+
+              <!-- Strengths -->
+              <div class="professional-card p-6 rounded-2xl shadow-lg border-t-8 border-green-500">
+                <h4 class="text-2xl font-bold text-green-700 mb-4 flex items-center">
+                  <svg class="h-6 w-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                  ✅ Key Strengths & Highlights
+                </h4>
+                <ul class="space-y-3">
+                  <li *ngFor="let s of splitPipeString(analysisResult.strengths)" class="flex items-start p-4 professional-card bg-green-50 rounded-lg border border-green-200">
+                    <svg class="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                    <span class="text-green-800">{{ s }}</span>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Weaknesses -->
+              <div class="professional-card p-6 rounded-2xl shadow-lg border-t-8 border-red-500">
+                <h4 class="text-2xl font-bold text-red-700 mb-4 flex items-center">
+                  <svg class="h-6 w-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path></svg>
+                  ⚠️ Critical Improvement Areas
+                </h4>
+                <ul class="space-y-3">
+                  <li *ngFor="let w of splitPipeString(analysisResult.weaknesses)" class="flex items-start p-4 professional-card bg-red-50 rounded-lg border border-red-200">
+                    <svg class="h-5 w-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
+                    <span class="text-red-800">{{ w }}</span>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Action Plans -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="professional-card p-6 rounded-2xl border-t-8 border-blue-500">
+                  <h4 class="text-xl font-bold text-blue-700 mb-3 flex items-center"><svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Immediate Actions</h4>
+                  <ul class="list-disc list-inside text-gray-700 space-y-2">
+                    <li *ngFor="let a of splitPipeString(analysisResult.immediateActions)">{{ a }}</li>
+                  </ul>
+                </div>
+                <div class="professional-card p-6 rounded-2xl border-t-8 border-purple-500">
+                  <h4 class="text-xl font-bold text-purple-700 mb-3 flex items-center"><svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Strategic Actions</h4>
+                  <ul class="list-disc list-inside text-gray-700 space-y-2">
+                    <li *ngFor="let a of splitPipeString(analysisResult.strategicActions)">{{ a }}</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- ATS Issues (if any) -->
+              <div *ngIf="analysisResult.atsIssues" class="professional-card p-6 rounded-2xl shadow-lg border-t-8 border-orange-500 bg-orange-50">
+                <h4 class="text-xl font-bold text-orange-700 mb-2">⚠️ ATS Issues Detected</h4>
+                <p class="text-gray-800">{{ analysisResult.atsIssues }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Next Steps (Immediate Action Plan) – matches the beloved design -->
+          <div class="mt-8 p-6 professional-card bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl shadow-lg border border-indigo-200">
+            <h4 class="text-2xl font-bold text-indigo-700 mb-4 flex items-center">
+              <svg class="h-6 w-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              🎯 Immediate Action Plan
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="p-4 professional-card bg-white rounded-xl border border-indigo-100">
+                <h5 class="font-bold text-indigo-600 mb-3 text-lg flex items-center"><svg class="h-5 w-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> This Week (Priority)</h5>
+                <ul class="list-disc list-inside text-gray-700 space-y-2">
+                  <li *ngFor="let action of splitPipeString(analysisResult.immediateActions)">{{ action }}</li>
+                </ul>
+              </div>
+              <div class="p-4 professional-card bg-white rounded-xl border border-indigo-100">
+                <h5 class="font-bold text-indigo-600 mb-3 text-lg flex items-center"><svg class="h-5 w-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Next 2-4 Weeks (Strategic)</h5>
+                <ul class="list-disc list-inside text-gray-700 space-y-2">
+                  <li *ngFor="let action of splitPipeString(analysisResult.strategicActions)">{{ action }}</li>
+                  <li>Network with professionals in target companies</li>
+                  <li>Prepare tailored versions for specific job applications</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-10 flex justify-start">
+        <button (click)="resetAnalysis()" class="py-3 px-6 bg-red-600 text-white font-semibold rounded-xl shadow-md hover:bg-red-700 transition duration-300 transform hover:scale-[1.02]">
+          &larr; Start New Analysis
+        </button>
+      </div>
+    </div>
+  </main>
+</div>

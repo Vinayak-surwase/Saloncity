@@ -1,0 +1,22 @@
+<div class="min-h-screen bg-gradient-to-br from-sky-100 to-rose-100 p-4 md:p-12 font-['Inter']">
+  <header class="text-center mb-10">
+    <h1 class="text-5xl font-extrabold text-indigo-700 leading-tight floating">📜 Resume History</h1>
+    <p class="text-gray-600 mt-2 text-xl">All previously analyzed resumes</p>
+  </header>
+  <main class="max-w-6xl mx-auto">
+    <div *ngIf="loading" class="text-center py-12"><div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div><p class="mt-4 text-gray-600">Loading...</p></div>
+    <div *ngIf="error" class="bg-red-100 text-red-700 p-4 rounded-lg">{{ error }}</div>
+    <div *ngIf="!loading && !error && resumes.length === 0" class="bg-yellow-100 text-yellow-800 p-4 rounded-lg text-center">No resumes found. Upload your first resume!</div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div *ngFor="let r of resumes" class="bg-white rounded-2xl shadow-xl overflow-hidden border-t-8 border-indigo-500 transition transform hover:scale-[1.02]">
+        <div class="p-6">
+          <div class="flex justify-between items-start"><div><h3 class="text-xl font-bold text-gray-800">{{ r.studentName }}</h3><p class="text-sm text-gray-500">{{ r.email }}</p></div><span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-semibold">{{ getRoleDisplayName(r.role) }}</span></div>
+          <div class="mt-4 flex justify-between items-center"><span class="text-gray-600">Overall Score</span><div class="flex items-center"><div class="w-16 h-16 rounded-full bg-gradient-to-r from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-xl">{{ r.score }}%</div></div></div>
+          <div class="mt-4 grid grid-cols-2 gap-2 text-sm"><div><span class="text-gray-500">ATS:</span> <span class="font-semibold">{{ r.atsScore }}%</span></div><div><span class="text-gray-500">Keywords:</span> <span class="font-semibold">{{ r.keywordScore }}%</span></div><div><span class="text-gray-500">Format:</span> <span class="font-semibold">{{ r.formatScore }}%</span></div><div><span class="text-gray-500">Experience:</span> <span class="font-semibold">{{ r.experienceScore }}%</span></div></div>
+          <div class="mt-4 text-xs text-gray-400">Uploaded: {{ r.uploadTime | date:'medium' }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="mt-10 text-center"><a routerLink="/" class="inline-block py-3 px-8 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition">← Back to Analyzer</a></div>
+  </main>
+</div>

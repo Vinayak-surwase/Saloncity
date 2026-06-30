@@ -1,0 +1,1784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Salon City Unisex Salon - Management System</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js">
+    </script>
+    <script src="https://unpkg.com/lucide@latest">
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .scrollbar-none::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-none {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printableInvoice,
+            #printableInvoice * {
+                visibility: visible;
+            }
+            #printableInvoice {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                color: black !important;
+                background: white !important;
+            }
+        }
+        .admin-menu-item {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .admin-menu-item:hover {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+        .admin-menu-item.active {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            border-right: 3px solid #f59e0b;
+        }
+        .admin-content-panel {
+            display: none;
+        }
+        .admin-content-panel.active {
+            display: block;
+        }
+        .staff-card {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .staff-card:hover {
+            border-color: #f59e0b;
+        }
+        .staff-card.selected {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+        }
+        .detail-form {
+            display: none;
+        }
+        .detail-form.active {
+            display: block;
+        }
+        .qty-input {
+            width: 44px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #e2e8f0;
+            text-align: center;
+            font-size: 12px;
+            padding: 2px;
+            -moz-appearance: textfield;
+        }
+        .qty-input::-webkit-outer-spin-button,
+        .qty-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .qty-input:focus {
+            border-color: #f59e0b;
+            outline: none;
+        }
+        .qty-input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .service-clickable {
+            cursor: pointer;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            transition: background 0.15s ease;
+        }
+        .service-clickable:hover {
+            background: rgba(245, 158, 11, 0.05);
+        }
+        .service-clickable .service-name {
+            pointer-events: none;
+        }
+        .service-right {
+            pointer-events: none;
+        }
+        .service-right .qty-input {
+            pointer-events: auto;
+        }
+        .billing-staff-card {
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .billing-staff-card:hover {
+            border-color: #22c55e;
+        }
+        .billing-staff-card.active-card {
+            ring: 2px solid #22c55e;
+        }
+        .assignment-chip {
+            pointer-events: auto;
+        }
+
+        /* green selected state for staff cards */
+        .staff-selected-green {
+            background: rgba(34, 197, 94, 0.15) !important;
+            border-color: #22c55e !important;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.08);
+        }
+        .staff-selected-green .staff-badge {
+            background: #22c55e !important;
+            color: #0f172a !important;
+        }
+        .staff-selected-green .staff-name {
+            color: #4ade80 !important;
+        }
+
+        /* Client Info card */
+        .client-info-card {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .client-info-card input {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            color: #e2e8f0;
+            font-size: 0.75rem;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        .client-info-card input:focus {
+            outline: none;
+            border-color: #f59e0b;
+        }
+        .client-info-card label {
+            color: #94a3b8;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Other category form */
+        .other-service-form input {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            color: #e2e8f0;
+            font-size: 0.75rem;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        .other-service-form input:focus {
+            outline: none;
+            border-color: #f59e0b;
+        }
+        .other-service-form label {
+            color: #94a3b8;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+        .service-delete-btn {
+            opacity: 0.4;
+            transition: opacity 0.15s;
+        }
+        .service-delete-btn:hover {
+            opacity: 1;
+            color: #f87171;
+        }
+
+        /* Period filter buttons */
+        .period-btn {
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+        .period-btn.active {
+            background: #f59e0b;
+            color: #0f172a;
+        }
+        .period-btn:not(.active):hover {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen selection:bg-amber-500 selection:text-slate-950">
+
+    <!-- AUTH VIEW -->
+    <div id="authView" class="min-h-screen flex items-center justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black p-4">
+        <div class="glass max-w-md w-full rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl"></div>
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-500">SALON CITY</h2>
+                <p class="text-slate-400 text-sm mt-1" id="authSubtitle">Sign in to manage your workstation</p>
+            </div>
+            <form id="loginForm" onsubmit="handleAuth(event, 'login')" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
+                    <input type="email" id="loginEmail" required class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-amber-500 transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Password</label>
+                    <input type="password" id="loginPassword" required class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-amber-500 transition-all">
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold py-3 px-4 rounded-xl shadow-lg hover:from-amber-400 hover:to-amber-500 transform hover:-translate-y-0.5 transition-all">
+                    Sign In
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="mainAppView" class="min-h-screen flex hidden">
+
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between no-print">
+            <div>
+                <div class="p-6 border-b border-slate-800">
+                    <h1 class="text-xl font-bold tracking-wider text-amber-400">SALON CITY</h1>
+                    <span class="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full mt-1 inline-block" id="userBadge">Admin Panel</span>
+                </div>
+                <nav class="p-4 space-y-1">
+                    <a href="#" onclick="switchView('dashboard')" id="nav-dashboard" class="flex items-center gap-3 px-4 py-3 rounded-xl text-amber-400 bg-slate-800/60 font-medium transition-all">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+                    </a>
+                    <a href="#" onclick="switchView('billing')" id="nav-billing" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800/40 hover:text-slate-100 transition-all">
+                        <i data-lucide="receipt" class="w-5 h-5"></i> Billing Console
+                    </a>
+                    <a href="#" onclick="switchView('services')" id="nav-services" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800/40 hover:text-slate-100 transition-all">
+                        <i data-lucide="scissors" class="w-5 h-5"></i> Service Catalog
+                    </a>
+                    <a href="#" onclick="switchView('client')" id="nav-client" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800/40 hover:text-slate-100 transition-all">
+                        <i data-lucide="users" class="w-5 h-5"></i> Client Info
+                    </a>
+                    <a href="#" onclick="switchView('admin')" id="nav-admin" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800/40 hover:text-slate-100 transition-all">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i> Admin Control
+                    </a>
+                </nav>
+            </div>
+            <div class="p-4 border-t border-slate-800">
+                <button onclick="handleLogout()" class="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-rose-950/40 hover:text-rose-400 text-slate-400 py-2.5 rounded-xl transition-all font-medium text-sm">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Disconnect
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 bg-slate-950 p-8 overflow-y-auto max-h-screen">
+
+            <!-- DASHBOARD -->
+            <section id="view-dashboard" class="space-y-6">
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight">Executive Dashboard</h2>
+                    <p class="text-slate-400 text-sm">Real-time macro transaction metrics and performance graphs</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="glass rounded-2xl p-6">
+                        <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Gross Revenue</div>
+                        <div class="text-3xl font-bold text-slate-100 mt-2">₹48,400.00</div>
+                        <div class="text-xs text-emerald-400 mt-2 flex items-center gap-1"><i data-lucide="trending-up" class="w-3 h-3"></i> Sync stable</div>
+                    </div>
+                    <div class="glass rounded-2xl p-6">
+                        <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Invoices Handled</div>
+                        <div class="text-3xl font-bold text-slate-100 mt-2">24</div>
+                        <div class="text-xs text-slate-400 mt-2">System wide tracking active</div>
+                    </div>
+                    <div class="glass rounded-2xl p-6">
+                        <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Promotional Subsidies</div>
+                        <div class="text-3xl font-bold text-amber-400 mt-2">₹3,200.00</div>
+                        <div class="text-xs text-amber-500/80 mt-2">Auto applied via >2000 INR rule</div>
+                    </div>
+                </div>
+                <div class="glass rounded-2xl p-6">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i data-lucide="bar-chart-3" class="text-amber-400 w-5 h-5"></i> Workforce Performance Metrics</h3>
+                    <div class="h-80 w-full">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BILLING -->
+            <section id="view-billing" class="space-y-6 hidden">
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight">Billing Console</h2>
+                    <p class="text-slate-400 text-sm">Select staff, then services with quantity</p>
+                </div>
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+                    <div class="xl:col-span-2 space-y-6">
+                        <div class="glass rounded-2xl p-6 space-y-3">
+                            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                <i data-lucide="user-check" class="w-4 h-4 text-amber-400"></i> 1. Select Staff
+                            </h3>
+                            <div id="billingStaffHorizontal" class="flex gap-2 overflow-x-auto pb-2 scrollbar-none"></div>
+                            <p class="text-[10px] text-slate-500">Click a staff card to select — the <span class="text-emerald-400 font-semibold">green</span> card is active. New services you tick get billed to them. Tip: for a father &amp; son getting the same service, tick it once while staff A is active, then make staff B active and tick the same service again — both lines are kept separately.</p>
+                        </div>
+                        <div class="glass rounded-2xl p-6 space-y-5">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                    <i data-lucide="scissors" class="w-4 h-4 text-amber-400"></i> 2. Select Services & Quantity
+                                </h3>
+                                <div class="flex gap-1 p-1 bg-slate-900 rounded-xl border border-slate-800 max-w-xs">
+                                    <button onclick="setBillingGender('MALE')" id="billing-gender-male" class="px-4 py-1.5 text-sm font-bold rounded-lg transition-all">Male</button>
+                                    <button onclick="setBillingGender('FEMALE')" id="billing-gender-female" class="px-4 py-1.5 text-sm font-bold rounded-lg transition-all">Female</button>
+                                </div>
+                            </div>
+                            <div id="billingDynamicServices" class="max-h-[420px] overflow-y-auto pr-2 scrollbar-none"></div>
+                        </div>
+                    </div>
+                    <div class="glass rounded-2xl p-6 space-y-6 sticky top-6">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                            <h3 class="text-xl font-semibold">Checkout</h3>
+                            <button onclick="clearBillingCart()" class="flex items-center gap-1.5 text-xs font-bold text-rose-400 hover:text-rose-300 bg-rose-950/30 hover:bg-rose-950/50 px-3 py-1.5 rounded-lg transition-all border border-rose-800/40">
+                                <i data-lucide="eraser" class="w-3.5 h-3.5"></i> Clear
+                            </button>
+                        </div>
+                        <div class="space-y-2">
+                            <h4 class="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                <i data-lucide="list-checks" class="w-4 h-4 text-amber-400"></i> Selected Services
+                            </h4>
+                            <div id="checkoutServicesList" class="space-y-1.5 max-h-52 overflow-y-auto pr-1 scrollbar-none"></div>
+                            <p class="text-[10px] text-slate-500">Re-check names, staff and quantities here before printing.</p>
+                        </div>
+                        <div class="space-y-3 text-base">
+                            <div class="flex justify-between text-slate-400"><span>Subtotal</span><span id="lblSubtotal">₹0.00</span></div>
+                            <div id="discountLineRow" class="flex justify-between text-rose-400 hidden"><span id="discountLineLabel">Discount</span><span id="lblDiscount">₹0.00</span></div>
+                            <div class="flex justify-between text-slate-400"><span>CGST (2.5%)</span><span id="lblCgst">₹0.00</span></div>
+                            <div class="flex justify-between text-slate-400"><span>SGST (2.5%)</span><span id="lblSgst">₹0.00</span></div>
+                            <hr class="border-slate-800">
+                            <div class="flex justify-between text-xl font-bold text-amber-400"><span>Total</span><span id="lblTotal">₹0.00</span></div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-sm font-semibold text-slate-400 uppercase tracking-wider">Discount</label>
+                            <div class="flex items-center gap-2 bg-slate-900/60 border border-slate-800 rounded-xl px-3 py-2.5 focus-within:border-amber-500">
+                                <input type="number" min="0" step="0.01" id="discountValueInput" value="" placeholder="0" oninput="handleDiscountValueChange(this.value)" class="w-full bg-transparent text-slate-100 font-mono font-bold text-sm focus:outline-none">
+                                <div class="flex gap-1 p-1 bg-slate-950 border border-slate-800 rounded-lg">
+                                    <button onclick="setDiscountMode('PERCENT')" id="discount-mode-percent" class="px-3 py-1 text-xs font-bold rounded-md transition-all">%</button>
+                                    <button onclick="setDiscountMode('FLAT')" id="discount-mode-flat" class="px-3 py-1 text-xs font-bold rounded-md transition-all">₹</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-sm font-semibold text-slate-400 uppercase tracking-wider">Payment</label>
+                            <div class="grid grid-cols-2 gap-2 p-1 bg-slate-900 border border-slate-800 rounded-xl">
+                                <button onclick="setPaymentMethod('CASH')" id="pay-mode-cash" class="py-2 text-sm font-bold rounded-lg transition-all bg-slate-800 text-slate-100 border border-slate-700">Cash</button>
+                                <button onclick="setPaymentMethod('ONLINE')" id="pay-mode-online" class="py-2 text-sm font-bold rounded-lg transition-all text-slate-400 hover:text-slate-100">UPI QR</button>
+                            </div>
+                        </div>
+                        <div id="qrContainerWrapper" class="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex flex-col items-center justify-center min-h-[180px] hidden">
+                            <div id="qrcode" class="bg-white p-3 rounded-lg"></div>
+                            <p class="text-xs text-slate-400 mt-2 font-mono tracking-wider">Scan UPI</p>
+                        </div>
+                        <button onclick="commitAndPrintInvoice()" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 py-3.5 rounded-xl font-bold text-base shadow-xl transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="printer" class="w-4 h-4"></i> Print Invoice
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SERVICES -->
+            <section id="view-services" class="space-y-6 hidden">
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight">Service Registry</h2>
+                    <p class="text-slate-400 text-sm">Click price to edit &bull; <span class="text-rose-400">✕</span> to delete</p>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                    <div class="lg:col-span-2 space-y-4">
+                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Active Services</h3>
+                        <div id="servicesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="glass rounded-2xl p-6 space-y-4">
+                            <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider border-b border-slate-800 pb-2">Add Service</h3>
+                            <form id="serviceForm" onsubmit="createNewServiceNode(event)" class="space-y-4 text-xs">
+                                <div>
+                                    <label class="block text-slate-400 mb-1 uppercase tracking-wider">Sector</label>
+                                    <div class="flex gap-1 p-1 bg-slate-900 rounded-xl border border-slate-800">
+                                        <button type="button" onclick="setNewServiceGender('MALE')" id="new-service-gender-male" class="flex-1 px-4 py-1.5 text-xs font-bold rounded-lg transition-all">Male</button>
+                                        <button type="button" onclick="setNewServiceGender('FEMALE')" id="new-service-gender-female" class="flex-1 px-4 py-1.5 text-xs font-bold rounded-lg transition-all">Female</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-slate-400 mb-1 uppercase tracking-wider">Category</label>
+                                    <input type="text" id="newServiceCategory" required placeholder="e.g. Hair Care" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-amber-500">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-400 mb-1 uppercase tracking-wider">Service Name</label>
+                                    <input type="text" id="newServiceName" required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-amber-500">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-400 mb-1 uppercase tracking-wider">Price (₹)</label>
+                                    <input type="number" step="0.01" min="0" id="newServiceRate" required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-amber-500">
+                                </div>
+                                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-lg mt-2 transition-all">Add</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CLIENT INFO -->
+            <section id="view-client" class="space-y-6 hidden">
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight">Client Information</h2>
+                    <p class="text-slate-400 text-sm">Store client details for future reference</p>
+                </div>
+                <div class="max-w-lg">
+                    <div class="glass rounded-2xl p-6 space-y-4 client-info-card">
+                        <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider border-b border-slate-800 pb-2 flex items-center gap-2">
+                            <i data-lucide="users" class="w-4 h-4"></i> Client Info
+                        </h3>
+                        <form id="clientInfoForm" onsubmit="saveClientInfo(event)" class="space-y-3 text-xs">
+                            <div>
+                                <label class="block text-slate-400 uppercase tracking-wider mb-1">Client Name</label>
+                                <input type="text" id="clientName" required placeholder="Full name" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-amber-500">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 uppercase tracking-wider mb-1">Date of Birth</label>
+                                <input type="date" id="clientDob" required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-amber-500">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 uppercase tracking-wider mb-1">Mobile Number</label>
+                                <input type="tel" id="clientMobile" required placeholder="9876543210" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-amber-500">
+                            </div>
+                            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg mt-1 transition-all flex items-center justify-center gap-2">
+                                <i data-lucide="save" class="w-4 h-4"></i> Save Client
+                            </button>
+                            <div id="clientInfoFeedback" class="text-xs text-emerald-400 text-center hidden"></div>
+                        </form>
+                        <div id="savedClientsList" class="mt-4 border-t border-slate-800 pt-3">
+                            <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Saved Clients</h4>
+                            <div id="clientsDisplay" class="space-y-1 text-xs text-slate-300 mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ADMIN -->
+            <section id="view-admin" class="space-y-6 hidden">
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight">Admin Control</h2>
+                    <p class="text-slate-400 text-sm">Manage staff details, registrations, and performance</p>
+                </div>
+
+                <div class="flex gap-6 items-start">
+                    <div class="w-52 flex-shrink-0 glass rounded-2xl p-3 space-y-1">
+                        <div onclick="switchAdminSection('details')" id="admin-menu-details" class="admin-menu-item active px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3">
+                            <i data-lucide="user" class="w-4 h-4"></i> Staff Details
+                        </div>
+                        <div onclick="switchAdminSection('management')" id="admin-menu-management" class="admin-menu-item px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 text-slate-400">
+                            <i data-lucide="users" class="w-4 h-4"></i> Staff Management
+                        </div>
+                        <div onclick="switchAdminSection('performance')" id="admin-menu-performance" class="admin-menu-item px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 text-slate-400">
+                            <i data-lucide="bar-chart-2" class="w-4 h-4"></i> Staff Performance
+                        </div>
+                    </div>
+
+                    <div class="flex-1 min-w-0">
+                        <div id="admin-panel-details" class="admin-content-panel active">
+                            <div class="glass rounded-2xl p-6 space-y-4">
+                                <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider border-b border-slate-800 pb-2">Staff Details</h3>
+                                <div id="detailsStaffCards" class="flex gap-2 overflow-x-auto pb-2 scrollbar-none"></div>
+                                <div id="detailsForm" class="space-y-3 text-xs mt-4 border-t border-slate-800 pt-4">
+                                    <p class="text-slate-400 text-center text-xs">Click a staff card above to edit details</p>
+                                    <div id="detailsFormFields" class="detail-form">
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label class="block text-slate-400 uppercase tracking-wider mb-1">First Name</label>
+                                                <input type="text" id="detailFn" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-amber-500">
+                                            </div>
+                                            <div>
+                                                <label class="block text-slate-400 uppercase tracking-wider mb-1">Surname</label>
+                                                <input type="text" id="detailLn" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-amber-500">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-slate-400 uppercase tracking-wider mb-1">Mobile</label>
+                                            <input type="text" id="detailMobile" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-amber-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-slate-400 uppercase tracking-wider mb-1">Address</label>
+                                            <textarea id="detailAddress" rows="2" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-amber-500"></textarea>
+                                        </div>
+                                        <div>
+                                            <label class="block text-slate-400 uppercase tracking-wider mb-1">Document</label>
+                                            <input type="text" id="detailDocument" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-amber-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-slate-400 uppercase tracking-wider mb-1">Photo</label>
+                                            <input type="file" id="detailPhoto" accept="image/*" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-amber-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400">
+                                        </div>
+                                        <button onclick="saveStaffDetails()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2 px-6 rounded-lg transition-all">Save</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="admin-panel-management" class="admin-content-panel">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div class="glass rounded-2xl p-6 space-y-4">
+                                    <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider border-b border-slate-800 pb-2">Workforce Directory</h3>
+                                    <div class="space-y-3 max-h-[500px] overflow-y-auto scrollbar-none">
+                                        <div id="staffContainer"></div>
+                                    </div>
+                                </div>
+                                <div class="glass rounded-2xl p-6 space-y-4">
+                                    <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider border-b border-slate-800 pb-2">Register Staff</h3>
+                                    <form id="staffForm" onsubmit="createNewStaffNode(event)" class="space-y-4 text-xs">
+                                        <div>
+                                            <label class="block text-slate-400 mb-1 uppercase tracking-wider">First Name</label>
+                                            <input type="text" id="staffFn" required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-amber-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-slate-400 mb-1 uppercase tracking-wider">Surname (Optional)</label>
+                                            <input type="text" id="staffLn" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-amber-500">
+                                        </div>
+                                        <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-lg mt-2 transition-all">Register</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PERFORMANCE PANEL (with period filters and download) -->
+                        <div id="admin-panel-performance" class="admin-content-panel">
+                            <div class="glass rounded-2xl p-6 space-y-4">
+                                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
+                                    <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider">Staff Performance</h3>
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex gap-1 bg-slate-900 p-1 rounded-lg">
+                                            <button onclick="setPeriod('daily')" id="period-daily" class="period-btn active px-3 py-1 text-xs font-bold rounded-md transition-all">Daily</button>
+                                            <button onclick="setPeriod('weekly')" id="period-weekly" class="period-btn px-3 py-1 text-xs font-bold rounded-md transition-all text-slate-400">Weekly</button>
+                                            <button onclick="setPeriod('monthly')" id="period-monthly" class="period-btn px-3 py-1 text-xs font-bold rounded-md transition-all text-slate-400">Monthly</button>
+                                            <button onclick="setPeriod('yearly')" id="period-yearly" class="period-btn px-3 py-1 text-xs font-bold rounded-md transition-all text-slate-400">Yearly</button>
+                                        </div>
+                                        <button onclick="downloadPerformance()" class="flex items-center gap-1 text-xs font-bold text-emerald-400 hover:text-emerald-300 bg-emerald-950/30 hover:bg-emerald-950/50 px-3 py-1.5 rounded-lg transition-all border border-emerald-800/40">
+                                            <i data-lucide="download" class="w-3.5 h-3.5"></i> CSV
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="perfStaffCards" class="flex gap-2 overflow-x-auto pb-2 scrollbar-none"></div>
+                                <div id="perfData" class="mt-4 border-t border-slate-800 pt-4">
+                                    <p class="text-slate-400 text-center text-xs">Click a staff card above to view performance</p>
+                                    <div id="perfDataContent" class="detail-form">
+                                        <div id="perfStaffName" class="text-sm font-semibold text-slate-200 mb-2"></div>
+                                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                                            <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-800 text-center">
+                                                <p class="text-slate-400">Total GST</p>
+                                                <p id="perfGst" class="text-amber-400 font-bold text-base">₹0.00</p>
+                                            </div>
+                                            <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-800 text-center">
+                                                <p class="text-slate-400">Services</p>
+                                                <p id="perfServices" class="text-amber-400 font-bold text-base">0</p>
+                                            </div>
+                                            <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-800 text-center">
+                                                <p class="text-slate-400">Online</p>
+                                                <p id="perfOnline" class="text-emerald-400 font-bold text-base">₹0.00</p>
+                                            </div>
+                                            <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-800 text-center">
+                                                <p class="text-slate-400">Cash</p>
+                                                <p id="perfCash" class="text-emerald-400 font-bold text-base">₹0.00</p>
+                                            </div>
+                                        </div>
+                                        <div id="perfInvoices" class="space-y-2 max-h-60 overflow-y-auto scrollbar-none mt-3">
+                                            <p class="text-xs text-slate-400">Select a staff card above.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- PRINTABLE INVOICE -->
+    <div id="printableInvoice" class="hidden p-8 bg-white text-slate-950 max-w-sm mx-auto font-sans">
+        <div class="text-center border-b pb-4 mb-4">
+            <h2 class="text-xl font-black tracking-tight text-slate-900">SALON CITY</h2>
+            <p class="text-[11px] text-slate-500 mt-0.5">Unisex Salon</p>
+        </div>
+        <div class="space-y-1 text-xs border-b pb-3 mb-3 text-slate-700">
+            <div class="flex justify-between"><span>Invoice</span><span id="printInvId" class="font-mono font-bold"></span></div>
+            <div class="flex justify-between"><span>Date</span><span id="printTimestamp"></span></div>
+        </div>
+        <div class="space-y-2 mb-3">
+            <div class="text-[10px] font-bold uppercase text-slate-400 border-b pb-0.5">Services</div>
+            <div id="printItemsContainer" class="space-y-1 text-xs"></div>
+        </div>
+        <div class="border-t pt-2 space-y-1 text-xs font-semibold text-slate-800">
+            <div class="flex justify-between"><span>Subtotal</span><span id="printSub">₹0.00</span></div>
+            <div id="printDiscRow" class="flex justify-between text-rose-600 hidden"><span id="printDiscLabel">Discount</span><span id="printDisc">₹0.00</span></div>
+            <div class="flex justify-between"><span>CGST (2.5%)</span><span id="printCgst">₹0.00</span></div>
+            <div class="flex justify-between"><span>SGST (2.5%)</span><span id="printSgst">₹0.00</span></div>
+            <div class="flex justify-between text-sm font-black text-slate-900 border-t pt-1.5"><span>Total</span><span id="printTotal">₹0.00</span></div>
+        </div>
+        <div class="text-center text-[10px] text-slate-400 mt-6 border-t pt-3">Thank you!</div>
+    </div>
+
+    <script>
+        // ===================== STATE =====================
+        let selectedStaffId = 1;
+        let selectedStaffIds = new Set([1]);
+        let activeStaffId = 1;
+
+        let selectedServiceItems = new Map();
+        let selectedBillingGender = 'MALE';
+        let selectedBillingCategory = null;
+        let discountMode = 'PERCENT';
+        let discountValue = 0;
+        let selectedNewServiceGender = 'MALE';
+        let currentPaymentMethod = 'CASH';
+        let editingStaffId = null;
+        let chartInstance = null;
+        let currentAdminSection = 'details';
+        let selectedDetailsStaffId = null;
+        let selectedPerfStaffId = null;
+
+        // Performance period
+        let currentPeriod = 'daily'; // daily, weekly, monthly, yearly
+
+        let otherServiceName = '';
+        let otherServiceRate = 0;
+
+        let savedClients = [];
+
+        const CGST_RATE = 0.025;
+        const SGST_RATE = 0.025;
+
+        let systemServices = [
+            { id: 1, name: 'Premium Haircut', rate: 450.00, category: 'Hair Care', subCategory: 'Styling', gender: 'MALE' },
+            { id: 2, name: 'Beard Grooming', rate: 450.00, category: 'Hair Care', subCategory: 'Shaving', gender: 'MALE' },
+            { id: 3, name: 'Hydrating Facial', rate: 1200.00, category: 'Skin Care', subCategory: 'Facials', gender: 'MALE' },
+            { id: 4, name: 'Luxury Spa', rate: 2500.00, category: 'Wellness', subCategory: 'Massage', gender: 'MALE' },
+            { id: 5, name: 'Bridal Makeover', rate: 4500.00, category: 'Aesthetics', subCategory: 'Makeup', gender: 'FEMALE' },
+            { id: 6, name: 'Manicure & Pedicure', rate: 800.00, category: 'Nail Care', subCategory: 'Therapy', gender: 'FEMALE' }
+        ];
+
+        let staffRegistry = [
+            { id: 1, staffCode: 'STF-001', firstName: 'Rahul', lastName: 'Sharma',
+                email: 'rahul@salon.com', baseSalary: 25000, commissionRate: 10, totalSales: 0,
+                mobile: '9876543210', document: 'Aadhar 1234', address: 'Mumbai',
+                photo: '', invoices: [] },
+            { id: 2, staffCode: 'STF-002', firstName: 'Priya', lastName: 'Patil',
+                email: 'priya@salon.com', baseSalary: 30000, commissionRate: 15, totalSales: 0,
+                mobile: '9876543211', document: 'PAN 5678', address: 'Pune',
+                photo: '', invoices: [] }
+        ];
+
+        // ===================== INIT =====================
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            setBillingGender('MALE');
+            setNewServiceGender('MALE');
+            setDiscountMode('PERCENT');
+            if (staffRegistry.length) {
+                selectedStaffId = staffRegistry[0].id;
+                selectedStaffIds = new Set([selectedStaffId]);
+                activeStaffId = selectedStaffId;
+            }
+            renderBillingStaffCards();
+            renderDetailsStaffCards();
+            renderPerfStaffCards();
+            renderStaffDirectory();
+            renderCatalogDisplayOnly();
+            renderBillingServices();
+            initPerformanceGraph();
+            if (staffRegistry.length) {
+                selectedDetailsStaffId = staffRegistry[0].id;
+                selectedPerfStaffId = staffRegistry[0].id;
+                loadStaffDetails(selectedDetailsStaffId);
+                loadPerformance(selectedPerfStaffId);
+            }
+            renderSavedClients();
+        });
+
+        // ===================== NAVIGATION =====================
+        function switchAdminSection(section) {
+            currentAdminSection = section;
+            document.querySelectorAll('.admin-menu-item').forEach(el => {
+                el.classList.remove('active');
+                el.classList.add('text-slate-400');
+            });
+            const menuItem = document.getElementById(`admin-menu-${section}`);
+            menuItem.classList.add('active');
+            menuItem.classList.remove('text-slate-400');
+            document.querySelectorAll('.admin-content-panel').forEach(el => el.classList.remove('active'));
+            document.getElementById(`admin-panel-${section}`).classList.add('active');
+            if (section === 'details') { renderDetailsStaffCards(); if (selectedDetailsStaffId) loadStaffDetails(
+                    selectedDetailsStaffId); }
+            if (section === 'management') { renderStaffDirectory(); }
+            if (section === 'performance') { renderPerfStaffCards(); if (selectedPerfStaffId) loadPerformance(
+                    selectedPerfStaffId); }
+        }
+
+        function switchView(target) {
+            ['dashboard', 'billing', 'services', 'client', 'admin'].forEach(v => {
+                const viewEl = document.getElementById(`view-${v}`);
+                if (viewEl) viewEl.classList.add('hidden');
+                const navEl = document.getElementById(`nav-${v}`);
+                if (navEl) navEl.className =
+                    "flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800/40 hover:text-slate-100 transition-all";
+            });
+            document.getElementById(`view-${target}`).classList.remove('hidden');
+            document.getElementById(`nav-${target}`).className =
+                "flex items-center gap-3 px-4 py-3 rounded-xl text-amber-400 bg-slate-800/60 font-medium transition-all";
+            if (target === 'dashboard') initPerformanceGraph();
+            if (target === 'admin') { switchAdminSection(currentAdminSection); }
+            if (target === 'billing') { renderBillingServices(); }
+            if (target === 'client') { renderSavedClients(); }
+        }
+
+        function handleAuth(e) { e.preventDefault();
+            document.getElementById('authView').classList.add('hidden');
+            document.getElementById('mainAppView').classList.remove('hidden');
+            switchView('dashboard'); }
+
+        function handleLogout() { document.getElementById('mainAppView').classList.add('hidden');
+            document.getElementById('authView').classList.remove('hidden'); }
+
+        function formatStaffFullName(staff) { return staff.lastName ? `${staff.firstName} ${staff.lastName}` : staff
+                .firstName; }
+
+        // ===================== STAFF CARDS =====================
+        function renderStaffCardHtml(staff, selectedId, onClickFn, variant) {
+            const isSelected = (selectedId === staff.id);
+            const baseClasses =
+                "flex-shrink-0 cursor-pointer p-2 rounded-xl transition-all border w-[76px] flex flex-col items-center gap-1.5 relative";
+            const selectedClasses = isSelected ?
+                "staff-selected-green border-emerald-500 shadow-md shadow-emerald-500/10" :
+                "bg-slate-900/60 border-slate-800 hover:border-slate-700";
+            const badgeClasses = isSelected ? "bg-emerald-500 text-slate-950" : "bg-slate-800 text-slate-400";
+            const nameClasses = isSelected ? "text-emerald-400" : "text-slate-200";
+
+            return `
+                <div onclick="${onClickFn}(${staff.id})" class="${baseClasses} ${selectedClasses}">
+                    ${isSelected ? '<i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400 absolute -top-1.5 -right-1.5 bg-slate-950 rounded-full"></i>' : ''}
+                    <div class="w-9 h-9 rounded-lg text-xs flex items-center justify-center font-mono font-bold ${badgeClasses} staff-badge">${staff.staffCode.split('-')[1]}</div>
+                    <div class="text-center overflow-hidden w-full"><h4 class="font-bold text-xs truncate ${nameClasses} staff-name">${staff.firstName}</h4></div>
+                </div>
+            `;
+        }
+
+        // ===================== BILLING STAFF =====================
+        function renderBillingStaffCards() {
+            const wrapper = document.getElementById('billingStaffHorizontal');
+            if (!wrapper) return;
+            wrapper.innerHTML = staffRegistry.map(staff => {
+                const isSelected = (selectedStaffId === staff.id);
+                const baseClasses =
+                    "billing-staff-card flex-shrink-0 p-2 rounded-xl transition-all border w-[76px] flex flex-col items-center gap-1.5 relative";
+                const selectedClasses = isSelected ?
+                    "staff-selected-green border-emerald-500 shadow-md shadow-emerald-500/10" :
+                    "bg-slate-900/60 border-slate-800 hover:border-slate-700";
+                const badgeClasses = isSelected ? "bg-emerald-500 text-slate-950" : "bg-slate-800 text-slate-400";
+                const nameClasses = isSelected ? "text-emerald-400" : "text-slate-200";
+
+                return `
+                    <div onclick="toggleBillingStaff(${staff.id})" class="${baseClasses} ${selectedClasses}">
+                        ${isSelected ? '<i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400 absolute -top-1.5 -right-1.5 bg-slate-950 rounded-full"></i>' : ''}
+                        <div class="w-9 h-9 rounded-lg text-xs flex items-center justify-center font-mono font-bold ${badgeClasses} staff-badge">${staff.staffCode.split('-')[1]}</div>
+                        <div class="text-center overflow-hidden w-full"><h4 class="font-bold text-xs truncate ${nameClasses} staff-name">${staff.firstName}</h4></div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function toggleBillingStaff(id) {
+            if (selectedStaffId === id) return;
+            selectedStaffId = id;
+            selectedStaffIds = new Set([id]);
+            activeStaffId = id;
+            renderBillingStaffCards();
+            renderBillingServices();
+            calculateLiveBill();
+        }
+
+        // ===================== STAFF DETAILS =====================
+        function renderDetailsStaffCards() {
+            const wrapper = document.getElementById('detailsStaffCards');
+            if (!wrapper) return;
+            wrapper.innerHTML = staffRegistry.map(staff => renderStaffCardHtml(staff, selectedDetailsStaffId,
+                'selectDetailsStaff', 'details')).join('');
+            lucide.createIcons();
+        }
+
+        function selectDetailsStaff(id) {
+            selectedDetailsStaffId = id;
+            renderDetailsStaffCards();
+            loadStaffDetails(id);
+        }
+
+        function loadStaffDetails(id) {
+            const staff = staffRegistry.find(s => s.id === id);
+            if (!staff) return;
+            const form = document.getElementById('detailsFormFields');
+            if (!form) return;
+            form.classList.add('active');
+            document.getElementById('detailFn').value = staff.firstName || '';
+            document.getElementById('detailLn').value = staff.lastName || '';
+            document.getElementById('detailMobile').value = staff.mobile || '';
+            document.getElementById('detailAddress').value = staff.address || '';
+            document.getElementById('detailDocument').value = staff.document || '';
+            document.getElementById('detailPhoto').value = '';
+            form.dataset.staffId = id;
+        }
+
+        function saveStaffDetails() {
+            const form = document.getElementById('detailsFormFields');
+            if (!form) return;
+            const id = parseInt(form.dataset.staffId);
+            if (!id) { alert('Select a staff member first.'); return; }
+            const staff = staffRegistry.find(s => s.id === id);
+            if (!staff) return;
+            const fn = document.getElementById('detailFn').value.trim();
+            const ln = document.getElementById('detailLn').value.trim();
+            const mobile = document.getElementById('detailMobile').value.trim();
+            const address = document.getElementById('detailAddress').value.trim();
+            const documentVal = document.getElementById('detailDocument').value.trim();
+            const photoFile = document.getElementById('detailPhoto').files[0];
+            if (!fn) { alert('First Name is required.'); return; }
+            staff.firstName = fn;
+            staff.lastName = ln;
+            staff.mobile = mobile;
+            staff.address = address;
+            staff.document = documentVal;
+            if (photoFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    staff.photo = e.target.result;
+                    alert('Saved!');
+                    renderDetailsStaffCards();
+                    renderBillingStaffCards();
+                    renderPerfStaffCards();
+                    renderStaffDirectory();
+                };
+                reader.readAsDataURL(photoFile);
+            } else {
+                alert('Saved!');
+                renderDetailsStaffCards();
+                renderBillingStaffCards();
+                renderPerfStaffCards();
+                renderStaffDirectory();
+            }
+        }
+
+        // ===================== STAFF PERFORMANCE =====================
+        function renderPerfStaffCards() {
+            const wrapper = document.getElementById('perfStaffCards');
+            if (!wrapper) return;
+            wrapper.innerHTML = staffRegistry.map(staff => renderStaffCardHtml(staff, selectedPerfStaffId,
+                'selectPerfStaff', 'perf')).join('');
+            lucide.createIcons();
+        }
+
+        function selectPerfStaff(id) {
+            selectedPerfStaffId = id;
+            renderPerfStaffCards();
+            loadPerformance(id);
+        }
+
+        // Period filter
+        function setPeriod(period) {
+            currentPeriod = period;
+            document.querySelectorAll('.period-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('text-slate-400');
+            });
+            const btn = document.getElementById(`period-${period}`);
+            if (btn) {
+                btn.classList.add('active');
+                btn.classList.remove('text-slate-400');
+            }
+            if (selectedPerfStaffId) loadPerformance(selectedPerfStaffId);
+        }
+
+        function getDateRange(period) {
+            const now = new Date();
+            const start = new Date(now);
+            const end = new Date(now);
+            switch (period) {
+                case 'daily':
+                    start.setHours(0, 0, 0, 0);
+                    end.setHours(23, 59, 59, 999);
+                    break;
+                case 'weekly':
+                    const day = now.getDay(); // 0=Sun
+                    const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Monday
+                    start.setDate(diff);
+                    start.setHours(0, 0, 0, 0);
+                    end.setDate(start.getDate() + 6);
+                    end.setHours(23, 59, 59, 999);
+                    break;
+                case 'monthly':
+                    start.setDate(1);
+                    start.setHours(0, 0, 0, 0);
+                    end.setMonth(start.getMonth() + 1);
+                    end.setDate(0);
+                    end.setHours(23, 59, 59, 999);
+                    break;
+                case 'yearly':
+                    start.setMonth(0, 1);
+                    start.setHours(0, 0, 0, 0);
+                    end.setMonth(11, 31);
+                    end.setHours(23, 59, 59, 999);
+                    break;
+                default:
+                    return { start: null, end: null };
+            }
+            return { start, end };
+        }
+
+        function loadPerformance(id) {
+            const staff = staffRegistry.find(s => s.id === id);
+            if (!staff) return;
+            const content = document.getElementById('perfDataContent');
+            if (!content) return;
+            content.classList.add('active');
+
+            // Filter invoices by period
+            const { start, end } = getDateRange(currentPeriod);
+            let invoices = staff.invoices || [];
+            if (start && end) {
+                invoices = invoices.filter(inv => {
+                    const d = new Date(inv.date);
+                    return d >= start && d <= end;
+                });
+            }
+
+            document.getElementById('perfStaffName').innerHTML =
+                `<span class="text-amber-400">${formatStaffFullName(staff)}</span> (${staff.staffCode}) – <span class="text-slate-400 text-xs uppercase">${currentPeriod}</span>`;
+
+            let totalGst = 0,
+                totalServices = 0,
+                totalOnline = 0,
+                totalCash = 0;
+            invoices.forEach(inv => {
+                totalGst += (inv.cgst || 0) + (inv.sgst || 0);
+                totalServices += inv.items ? inv.items.length : 0;
+                if (inv.paymentMethod === 'ONLINE') totalOnline += inv.total || 0;
+                else if (inv.paymentMethod === 'CASH') totalCash += inv.total || 0;
+            });
+            document.getElementById('perfGst').textContent = `₹${totalGst.toFixed(2)}`;
+            document.getElementById('perfServices').textContent = totalServices;
+            document.getElementById('perfOnline').textContent = `₹${totalOnline.toFixed(2)}`;
+            document.getElementById('perfCash').textContent = `₹${totalCash.toFixed(2)}`;
+
+            const container = document.getElementById('perfInvoices');
+            if (!container) return;
+            if (invoices.length === 0) { container.innerHTML =
+                '<p class="text-xs text-slate-400">No invoices for this period.</p>'; return; }
+            let html = '<div class="space-y-2">';
+            invoices.slice().reverse().forEach(inv => {
+                const dateStr = new Date(inv.date).toLocaleString();
+                html += `<div class="bg-slate-900/60 p-3 rounded-lg border border-slate-800 text-xs">
+                    <div class="flex justify-between font-bold text-amber-400"><span>${inv.id}</span><span>₹${inv.total.toFixed(2)}</span></div>
+                    <div class="flex justify-between text-slate-400"><span>${dateStr}</span><span>${inv.paymentMethod}</span></div>
+                    <div class="text-slate-500 mt-1">${inv.items.map(i => `${i.name} x${i.qty||1} (₹${(i.rate*(i.qty||1)).toFixed(2)})`).join(', ')}</div>
+                    ${inv.discount > 0 ? `<div class="text-rose-400">Discount: -₹${inv.discount.toFixed(2)}</div>` : ''}
+                </div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+
+            // Store filtered invoices for download
+            window._perfFilteredInvoices = invoices;
+            window._perfStaff = staff;
+        }
+
+        // Download CSV
+        function downloadPerformance() {
+            const staff = window._perfStaff;
+            const invoices = window._perfFilteredInvoices || [];
+            if (!staff || invoices.length === 0) {
+                alert('No data to download for the current period.');
+                return;
+            }
+            let csv = `Staff,${staff.firstName} ${staff.lastName || ''} (${staff.staffCode})\n`;
+            csv += `Period,${currentPeriod.toUpperCase()}\n`;
+            csv += `Date,${new Date().toLocaleString()}\n\n`;
+            csv += 'Invoice ID,Date,Payment,Items,Subtotal,Discount,Tax,Total\n';
+            invoices.forEach(inv => {
+                const items = inv.items.map(i => `${i.name} x${i.qty}`).join('; ');
+                csv +=
+                    `${inv.id},${new Date(inv.date).toLocaleString()},${inv.paymentMethod},"${items}",${inv.subtotal.toFixed(2)},${inv.discount.toFixed(2)},${(inv.cgst+inv.sgst).toFixed(2)},${inv.total.toFixed(2)}\n`;
+            });
+            // Add summary
+            let totalGst = invoices.reduce((s, i) => s + (i.cgst || 0) + (i.sgst || 0), 0);
+            let totalServices = invoices.reduce((s, i) => s + (i.items ? i.items.length : 0), 0);
+            let totalOnline = invoices.filter(i => i.paymentMethod === 'ONLINE').reduce((s, i) => s + (i.total || 0), 0);
+            let totalCash = invoices.filter(i => i.paymentMethod === 'CASH').reduce((s, i) => s + (i.total || 0), 0);
+            csv += `\nSummary,,,,Total GST,${totalGst.toFixed(2)},,Services,${totalServices}\n`;
+            csv += `,,,Online,${totalOnline.toFixed(2)},Cash,${totalCash.toFixed(2)}\n`;
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${staff.staffCode}_${currentPeriod}_performance.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ===================== BILLING SERVICES =====================
+        function setBillingGender(gender) {
+            selectedBillingGender = gender;
+            const maleBtn = document.getElementById('billing-gender-male');
+            const femaleBtn = document.getElementById('billing-gender-female');
+            if (gender === 'MALE') { maleBtn.className =
+                    "px-4 py-1.5 text-sm font-bold rounded-lg bg-amber-500 text-slate-950";
+                femaleBtn.className = "px-4 py-1.5 text-sm font-bold rounded-lg text-slate-400 hover:text-slate-100"; } else {
+                femaleBtn.className = "px-4 py-1.5 text-sm font-bold rounded-lg bg-amber-500 text-slate-950";
+                maleBtn.className = "px-4 py-1.5 text-sm font-bold rounded-lg text-slate-400 hover:text-slate-100"; }
+            renderBillingServices();
+            calculateLiveBill();
+        }
+
+        function resolveActiveAssignee() {
+            if (selectedStaffId && staffRegistry.some(s => s.id === selectedStaffId)) return selectedStaffId;
+            return staffRegistry.length ? staffRegistry[0].id : null;
+        }
+
+        let isOtherCategorySelected = false;
+
+        function renderBillingServices() {
+            const container = document.getElementById('billingDynamicServices');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const filtered = systemServices.filter(s => s.gender === selectedBillingGender);
+            const grouped = {};
+            filtered.forEach(s => {
+                if (!grouped[s.category]) grouped[s.category] = [];
+                grouped[s.category].push(s);
+            });
+
+            const categoryNames = Object.keys(grouped);
+            const allCategories = [...categoryNames, 'Other'];
+
+            if (!selectedBillingCategory || (!categoryNames.includes(selectedBillingCategory) && selectedBillingCategory !==
+                    'Other')) {
+                selectedBillingCategory = categoryNames.length ? categoryNames[0] : 'Other';
+            }
+
+            if (selectedBillingCategory === 'Other') {
+                isOtherCategorySelected = true;
+            } else {
+                isOtherCategorySelected = false;
+            }
+
+            const navHtml = allCategories.map(cn => {
+                const isActive = (cn === selectedBillingCategory);
+                const icon = cn === 'Other' ? 'plus-circle' : 'tag';
+                return `<button onclick="selectBillingCategory('${cn}')" class="text-left px-4 py-3 rounded-xl border text-sm font-bold tracking-wide uppercase transition-all flex items-center gap-2 ${isActive ? 'bg-gradient-to-br from-amber-500/20 to-amber-600/10 border-amber-500 text-amber-400' : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'}">
+                    <i data-lucide="${icon}" class="w-3.5 h-3.5"></i> ${cn}
+                </button>`;
+            }).join('');
+
+            let detailHtml = '';
+
+            if (selectedBillingCategory === 'Other') {
+                const assignee = resolveActiveAssignee();
+                const hasStaff = !!assignee;
+                detailHtml = `
+                    <div class="other-service-form space-y-3 p-2">
+                        <p class="text-xs text-slate-400">Add a custom service not in the catalog</p>
+                        <div>
+                            <label class="block text-slate-400 uppercase tracking-wider mb-1">Service Name</label>
+                            <input type="text" id="otherServiceNameInput" placeholder="e.g. Hair Botox" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 uppercase tracking-wider mb-1">Price (₹)</label>
+                            <input type="number" step="0.01" min="0" id="otherServiceRateInput" placeholder="0.00" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <button onclick="addOtherServiceToCart()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 text-sm">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Add to Cart
+                        </button>
+                        ${!hasStaff ? '<p class="text-xs text-rose-400 mt-1">⚠️ Please select a staff member first.</p>' : ''}
+                        <div id="otherServiceFeedback" class="text-xs text-emerald-400 text-center hidden"></div>
+                    </div>
+                `;
+            } else {
+                const activeItems = grouped[selectedBillingCategory] || [];
+                const assignee = resolveActiveAssignee();
+                const detailItemsHtml = activeItems.map(item => {
+                    const activeKey = `${item.id}_${assignee}`;
+                    const cartItem = assignee ? selectedServiceItems.get(activeKey) : null;
+                    const isChecked = !!cartItem;
+                    const qty = cartItem ? cartItem.qty : 1;
+
+                    const allAssignments = Array.from(selectedServiceItems.entries()).filter(([k, v]) => v.id ===
+                    item.id);
+                    let chipsHtml = '';
+                    if (allAssignments.length > 0) {
+                        chipsHtml = `<div class="flex flex-wrap gap-1 mt-1">` + allAssignments.map(([key, entry]) => {
+                            const st = staffRegistry.find(s => s.id === entry.staffId);
+                            const stName = st ? st.firstName : 'Unassigned';
+                            const isThisOneActive = (entry.staffId === assignee);
+                            return `<span class="assignment-chip inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md ${isThisOneActive ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/40' : 'bg-slate-800 text-slate-400 border border-slate-700'}">
+                                ${stName} ×${entry.qty}
+                                <button type="button" onclick="event.stopPropagation(); removeServiceAssignment('${key}')" class="hover:text-rose-400 leading-none" title="Remove">✕</button>
+                            </span>`;
+                        }).join('') + `</div>`;
+                    }
+
+                    // Quantity input: value is empty if not checked; if checked, show qty
+                    const inputVal = isChecked ? qty : '';
+
+                    return `<div class="flex items-center justify-between p-1 rounded-lg bg-slate-900/60 border border-slate-800/50">
+                        <div class="flex items-center gap-2.5 flex-1 service-clickable" onclick="toggleServiceCard(this, ${item.id}, ${item.rate}, '${item.name}', '${item.gender}')">
+                            <input type="checkbox" ${isChecked ? 'checked' : ''} class="accent-emerald-500 w-4 h-4 rounded pointer-events-none" id="service-${item.id}">
+                            <div class="service-name">
+                                <p class="text-sm font-semibold text-slate-200">${item.name}</p>
+                                ${item.subCategory ? `<p class="text-xs text-slate-400 mt-0.5">${item.subCategory}</p>` : ''}
+                                ${chipsHtml}
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 service-right" onclick="event.stopPropagation();">
+                            <input type="number" min="1" max="99" value="${inputVal}" data-key="${activeKey}" oninput="handleQtyInput(this)" class="qty-input ${!isChecked ? 'opacity-50' : ''}" ${!isChecked ? 'disabled' : ''} placeholder="">
+                            <span class="font-mono text-sm font-bold text-slate-300 price-display" data-price-key="${activeKey}">${isChecked ? `₹${(item.rate * qty).toFixed(0)}` : ''}</span>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                detailHtml = `
+                    <div class="space-y-2">
+                        <h4 class="text-sm font-bold text-amber-500 tracking-wide uppercase border-b border-slate-800/60 pb-1.5"><i data-lucide="tag" class="w-3.5 h-3.5"></i> ${selectedBillingCategory}</h4>
+                        <div class="space-y-2">${detailItemsHtml || '<p class="text-xs text-slate-500 p-2">No services in this category.</p>'}</div>
+                        ${!assignee ? '<p class="text-xs text-rose-400 mt-2">⚠️ Please select a staff member first.</p>' : ''}
+                    </div>
+                `;
+            }
+
+            container.innerHTML = `<div class="flex flex-col sm:flex-row gap-4">
+                <div class="flex flex-row sm:flex-col gap-2 sm:w-44 flex-shrink-0 overflow-x-auto sm:overflow-visible scrollbar-none">${navHtml}</div>
+                <div class="flex-1 min-w-0 border border-slate-800/80 bg-slate-900/20 rounded-xl p-4 space-y-3">
+                    ${detailHtml}
+                </div>
+            </div>`;
+            lucide.createIcons();
+        }
+
+        function selectBillingCategory(categoryName) {
+            selectedBillingCategory = categoryName;
+            renderBillingServices();
+        }
+
+        function addOtherServiceToCart() {
+            const nameInput = document.getElementById('otherServiceNameInput');
+            const rateInput = document.getElementById('otherServiceRateInput');
+            if (!nameInput || !rateInput) return;
+
+            const name = nameInput.value.trim();
+            const rate = parseFloat(rateInput.value);
+
+            if (!name) { alert('Please enter a service name.'); return; }
+            if (isNaN(rate) || rate < 0) { alert('Please enter a valid price.'); return; }
+
+            const assignee = resolveActiveAssignee();
+            if (!assignee) { alert('Please select a staff member first.'); return; }
+
+            const tempId = -Date.now();
+            const key = `${tempId}_${assignee}`;
+
+            let existingKey = null;
+            for (const [k, v] of selectedServiceItems.entries()) {
+                if (v.id < 0 && v.name === name && v.staffId === assignee) {
+                    existingKey = k;
+                    break;
+                }
+            }
+
+            if (existingKey) {
+                const existing = selectedServiceItems.get(existingKey);
+                existing.qty = (existing.qty || 1) + 1;
+                selectedServiceItems.set(existingKey, existing);
+            } else {
+                selectedServiceItems.set(key, { id: tempId, name, rate, gender: selectedBillingGender, staffId: assignee,
+                    qty: 1 });
+            }
+
+            nameInput.value = '';
+            rateInput.value = '';
+            const feedback = document.getElementById('otherServiceFeedback');
+            if (feedback) {
+                feedback.textContent = `✅ "${name}" added to cart!`;
+                feedback.classList.remove('hidden');
+                setTimeout(() => { feedback.classList.add('hidden'); }, 2500);
+            }
+
+            calculateLiveBill();
+            renderBillingServices();
+        }
+
+        function toggleServiceCard(clickedDiv, id, rate, name, gender) {
+            const assignee = resolveActiveAssignee();
+            if (!assignee) {
+                alert('Please select a staff member first.');
+                return;
+            }
+            const key = `${id}_${assignee}`;
+            const parentCard = clickedDiv.closest('.flex.items-center.justify-between');
+            const qtyInput = parentCard ? parentCard.querySelector('.qty-input') : null;
+
+            if (selectedServiceItems.has(key)) {
+                selectedServiceItems.delete(key);
+            } else {
+                let qty = 1;
+                if (qtyInput) {
+                    const val = parseInt(qtyInput.value);
+                    if (!isNaN(val) && val > 0) qty = val;
+                }
+                selectedServiceItems.set(key, { id, name, rate, gender, staffId: assignee, qty });
+            }
+            calculateLiveBill();
+            renderBillingServices();
+        }
+
+        function removeServiceAssignment(key) {
+            selectedServiceItems.delete(key);
+            calculateLiveBill();
+            renderBillingServices();
+        }
+
+        function handleQtyInput(input) {
+            const key = input.dataset.key;
+            let qty = parseInt(input.value);
+            if (isNaN(qty) || qty < 1) {
+                // If empty or invalid, treat as 1 (but don't update display)
+                qty = 1;
+                input.value = '';
+            } else {
+                if (qty > 99) qty = 99;
+                input.value = qty;
+            }
+
+            const cartItem = selectedServiceItems.get(key);
+            if (!cartItem) return;
+            cartItem.qty = qty;
+            selectedServiceItems.set(key, cartItem);
+
+            const priceSpan = input.closest('.service-right').querySelector('.price-display');
+            if (priceSpan) {
+                priceSpan.textContent = `₹${(cartItem.rate * qty).toFixed(0)}`;
+            }
+            calculateLiveBill();
+        }
+
+        function setPaymentMethod(method) {
+            currentPaymentMethod = method;
+            const cashBtn = document.getElementById('pay-mode-cash');
+            const onlineBtn = document.getElementById('pay-mode-online');
+            if (method === 'CASH') { cashBtn.className =
+                    "py-2 text-sm font-bold rounded-lg transition-all bg-slate-800 text-slate-100 border border-slate-700";
+                onlineBtn.className = "py-2 text-sm font-bold rounded-lg transition-all text-slate-400 hover:text-slate-100"; } else {
+                onlineBtn.className =
+                    "py-2 text-sm font-bold rounded-lg transition-all bg-slate-800 text-slate-100 border border-slate-700";
+                cashBtn.className = "py-2 text-sm font-bold rounded-lg transition-all text-slate-400 hover:text-slate-100"; }
+            calculateLiveBill();
+        }
+
+        function setDiscountMode(mode) {
+            discountMode = mode;
+            const percentBtn = document.getElementById('discount-mode-percent');
+            const flatBtn = document.getElementById('discount-mode-flat');
+            if (mode === 'PERCENT') { percentBtn.className =
+                    "px-3 py-1 text-xs font-bold rounded-md transition-all bg-amber-500 text-slate-950";
+                flatBtn.className = "px-3 py-1 text-xs font-bold rounded-md transition-all text-slate-400 hover:text-slate-100"; } else {
+                flatBtn.className = "px-3 py-1 text-xs font-bold rounded-md transition-all bg-amber-500 text-slate-950";
+                percentBtn.className =
+                    "px-3 py-1 text-xs font-bold rounded-md transition-all text-slate-400 hover:text-slate-100"; }
+            calculateLiveBill();
+        }
+
+        function handleDiscountValueChange(rawValue) { const parsed = parseFloat(rawValue);
+            discountValue = isNaN(parsed) || parsed < 0 ? 0 : parsed;
+            calculateLiveBill(); }
+
+        function clearBillingCart() {
+            if (selectedServiceItems.size === 0) {
+                alert('Cart is already empty.');
+                return;
+            }
+            if (!confirm('Clear all selected services from checkout?')) return;
+            selectedServiceItems.clear();
+            discountValue = 0;
+            document.getElementById('discountValueInput').value = '';
+            setDiscountMode('PERCENT');
+            renderBillingServices();
+            calculateLiveBill();
+            const nameInput = document.getElementById('otherServiceNameInput');
+            const rateInput = document.getElementById('otherServiceRateInput');
+            if (nameInput) nameInput.value = '';
+            if (rateInput) rateInput.value = '';
+            const feedback = document.getElementById('otherServiceFeedback');
+            if (feedback) { feedback.classList.add('hidden');
+                feedback.textContent = ''; }
+        }
+
+        function renderCheckoutServicesList() {
+            const container = document.getElementById('checkoutServicesList');
+            if (!container) return;
+            if (selectedServiceItems.size === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-500">No services selected yet.</p>';
+                return;
+            }
+            container.innerHTML = Array.from(selectedServiceItems.entries()).map(([key, item]) => {
+                const staff = staffRegistry.find(s => s.id === item.staffId);
+                const staffName = staff ? formatStaffFullName(staff) : 'Unassigned';
+                const isOther = item.id < 0;
+                return `<div class="flex items-center justify-between gap-2 bg-slate-900/60 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs">
+                    <div class="min-w-0">
+                        <p class="font-semibold text-slate-200 truncate">${item.name} ${isOther ? '<span class="text-[10px] text-amber-400/70">(custom)</span>' : ''}<span class="text-slate-500"> ×${item.qty}</span></p>
+                        <p class="text-[10px] text-emerald-400/80 truncate">${staffName}</p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <span class="font-mono font-bold text-slate-300">₹${(item.rate * item.qty).toFixed(0)}</span>
+                        <button type="button" onclick="removeServiceAssignment('${key}')" class="text-slate-500 hover:text-rose-400 font-bold px-1" title="Remove">✕</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function calculateLiveBill() {
+            renderCheckoutServicesList();
+            let subtotal = 0;
+            selectedServiceItems.forEach(item => subtotal += item.rate * item.qty);
+            let discount = 0,
+                discountLabel = 'Discount';
+            if (discountValue > 0 && subtotal > 0) {
+                if (discountMode === 'PERCENT') { discount = subtotal * (discountValue / 100);
+                    discountLabel = `${discountValue}% off`; } else { discount = Math.min(discountValue, subtotal);
+                    discountLabel = `₹${discountValue.toFixed(2)} off`; }
+            }
+            let taxableValue = subtotal - discount,
+                cgst = taxableValue * CGST_RATE,
+                sgst = taxableValue * SGST_RATE,
+                total = taxableValue + cgst + sgst;
+            document.getElementById('lblSubtotal').innerText = `₹${subtotal.toFixed(2)}`;
+            document.getElementById('lblDiscount').innerText = `₹${discount.toFixed(2)}`;
+            document.getElementById('lblCgst').innerText = `₹${cgst.toFixed(2)}`;
+            document.getElementById('lblSgst').innerText = `₹${sgst.toFixed(2)}`;
+            document.getElementById('lblTotal').innerText = `₹${total.toFixed(2)}`;
+            const discountRow = document.getElementById('discountLineRow');
+            if (discount > 0) { document.getElementById('discountLineLabel').innerText = discountLabel;
+                discountRow.classList.remove('hidden'); } else { discountRow.classList.add('hidden'); }
+            const qrWrapper = document.getElementById('qrContainerWrapper'),
+                qrTarget = document.getElementById('qrcode');
+            if (currentPaymentMethod === 'ONLINE' && total > 0) { qrTarget.innerHTML = '';
+                qrWrapper.classList.remove('hidden');
+                const upiString =
+                    `upi://pay?pa=Q731263828@ybl&pn=SalonCity&am=${total.toFixed(2)}&cu=INR`;
+                new QRCode(qrTarget, { text: upiString, width: 130, height: 130, colorDark: "#020617",
+                    colorLight: "#ffffff" }); } else { qrWrapper.classList.add('hidden'); }
+            return { subtotal, discount, discountLabel, taxableValue, cgst, sgst, total };
+        }
+
+        // ===================== COMMIT INVOICE =====================
+        function commitAndPrintInvoice() {
+            if (selectedServiceItems.size === 0) return alert('Please select at least one service.');
+
+            const staffServiceMap = new Map();
+            selectedServiceItems.forEach(item => {
+                const staffId = item.staffId || 0;
+                if (staffId === 0) return;
+                if (!staffServiceMap.has(staffId)) staffServiceMap.set(staffId, []);
+                staffServiceMap.get(staffId).push(item);
+            });
+
+            if (staffServiceMap.size === 0) return alert('No services assigned to any staff member.');
+
+            const masterInvoiceId = 'INV-' + Math.floor(10000000 + Math.random() * 90000000);
+            const staffInvoices = [];
+            let grandTotal = 0;
+
+            staffServiceMap.forEach((items, staffId) => {
+                const staff = staffRegistry.find(s => s.id === staffId);
+                if (!staff) return;
+                const subtotal = items.reduce((sum, it) => sum + it.rate * it.qty, 0);
+                const totalSubtotal = Array.from(selectedServiceItems.values()).reduce((sum, it) => sum + it.rate *
+                    it.qty, 0);
+                const discountProportion = totalSubtotal > 0 ? subtotal / totalSubtotal : 0;
+                const staffDiscount = discountValue * discountProportion;
+                const taxableValue = subtotal - staffDiscount;
+                const cgst = taxableValue * CGST_RATE;
+                const sgst = taxableValue * SGST_RATE;
+                const total = taxableValue + cgst + sgst;
+                grandTotal += total;
+
+                const invoice = {
+                    id: masterInvoiceId,
+                    date: new Date().toISOString(),
+                    items: items.map(it => ({ name: it.name, rate: it.rate, gender: it.gender, qty: it.qty })),
+                    subtotal,
+                    discount: staffDiscount,
+                    discountLabel: discountValue > 0 ? `Discount (${discountValue}%)` : '',
+                    cgst,
+                    sgst,
+                    total,
+                    paymentMethod: currentPaymentMethod,
+                    staffId
+                };
+                staff.invoices.push(invoice);
+                staff.totalSales += total;
+                staffInvoices.push({ staff, invoice, items });
+            });
+
+            const allItems = Array.from(selectedServiceItems.values());
+            const billMetrics = calculateLiveBill();
+            document.getElementById('printInvId').innerText = masterInvoiceId;
+            document.getElementById('printTimestamp').innerText = new Date().toLocaleString();
+            const printItemsContainer = document.getElementById('printItemsContainer');
+            printItemsContainer.innerHTML = '';
+            allItems.forEach(item => {
+                const isOther = item.id < 0;
+                printItemsContainer.innerHTML += `<div class="flex justify-between text-slate-800">
+                    <span>${item.name} x${item.qty} ${isOther ? '<span class="text-[9px] text-amber-500">(custom)</span>' : ''}<span class="text-[9px] text-slate-400"> (${item.gender})</span></span>
+                    <span class="font-mono">₹${(item.rate * item.qty).toFixed(2)}</span>
+                </div>`;
+            });
+            document.getElementById('printSub').innerText = `₹${billMetrics.subtotal.toFixed(2)}`;
+            document.getElementById('printDisc').innerText = `₹${billMetrics.discount.toFixed(2)}`;
+            document.getElementById('printCgst').innerText = `₹${billMetrics.cgst.toFixed(2)}`;
+            document.getElementById('printSgst').innerText = `₹${billMetrics.sgst.toFixed(2)}`;
+            document.getElementById('printTotal').innerText = `₹${grandTotal.toFixed(2)}`;
+            const printDiscRow = document.getElementById('printDiscRow');
+            if (billMetrics.discount > 0) { document.getElementById('printDiscLabel').innerText = billMetrics
+                    .discountLabel;
+                printDiscRow.classList.remove('hidden'); } else { printDiscRow.classList.add('hidden'); }
+
+            const printTarget = document.getElementById('printableInvoice');
+            printTarget.classList.remove('hidden');
+            window.print();
+            printTarget.classList.add('hidden');
+
+            selectedServiceItems.clear();
+            discountValue = 0;
+            document.getElementById('discountValueInput').value = '';
+            setDiscountMode('PERCENT');
+            renderBillingServices();
+            calculateLiveBill();
+            renderStaffDirectory();
+            renderDetailsStaffCards();
+            renderPerfStaffCards();
+            renderBillingStaffCards();
+            initPerformanceGraph();
+            if (selectedPerfStaffId) loadPerformance(selectedPerfStaffId);
+            if (selectedDetailsStaffId) loadStaffDetails(selectedDetailsStaffId);
+            alert('Invoice printed!');
+        }
+
+        // ===================== STAFF DIRECTORY =====================
+        function renderStaffDirectory() {
+            const container = document.getElementById('staffContainer');
+            if (!container) return;
+            container.innerHTML = staffRegistry.map(e => {
+                if (editingStaffId === e.id) {
+                    return `<div class="glass rounded-2xl p-4 text-xs border border-amber-500/40">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center font-mono text-amber-400 font-bold border border-slate-800 flex-shrink-0">${e.staffCode.split('-')[1]}</div>
+                            <div class="min-w-0"><h4 class="font-bold text-slate-200 truncate">${formatStaffFullName(e)}</h4></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mb-2">
+                            <div><label class="block text-[10px] text-slate-500 mb-1">Code</label><input type="text" id="edit-code-${e.id}" value="${e.staffCode}" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-100 font-mono focus:outline-none focus:border-amber-500"></div>
+                            <div><label class="block text-[10px] text-slate-500 mb-1">Surname</label><input type="text" id="edit-lastname-${e.id}" value="${e.lastName || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-amber-500"></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mb-2">
+                            <div><label class="block text-[10px] text-slate-500 mb-1">Mobile</label><input type="text" id="edit-mobile-${e.id}" value="${e.mobile || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-amber-500"></div>
+                            <div><label class="block text-[10px] text-slate-500 mb-1">Document</label><input type="text" id="edit-document-${e.id}" value="${e.document || ''}" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-amber-500"></div>
+                        </div>
+                        <div class="mb-2"><label class="block text-[10px] text-slate-500 mb-1">Address</label><textarea id="edit-address-${e.id}" rows="1" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-amber-500">${e.address || ''}</textarea></div>
+                        <div class="grid grid-cols-3 gap-2 mb-3">
+                            <div><label class="block text-[10px] text-slate-500 mb-1">Base</label><input type="number" min="0" step="0.01" id="edit-salary-${e.id}" value="${e.baseSalary}" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-100 font-mono focus:outline-none focus:border-amber-500"></div>
+                            <div><label class="block text-[10px] text-slate-500 mb-1">Comm %</label><input type="number" min="0" step="0.01" id="edit-comm-${e.id}" value="${e.commissionRate}" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-100 font-mono focus:outline-none focus:border-amber-500"></div>
+                            <div><label class="block text-[10px] text-slate-500 mb-1">Sales</label><input type="number" min="0" step="0.01" id="edit-sales-${e.id}" value="${e.totalSales}" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-100 font-mono focus:outline-none focus:border-amber-500"></div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="saveStaffEdit(${e.id})" class="flex-1 flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2 rounded-lg"><i data-lucide="check" class="w-3.5 h-3.5"></i> Save</button>
+                            <button onclick="cancelStaffEdit()" class="flex-1 flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded-lg"><i data-lucide="x" class="w-3.5 h-3.5"></i> Cancel</button>
+                        </div>
+                    </div>`;
+                }
+                return `<div class="glass rounded-2xl p-4 flex justify-between items-start text-xs gap-3 staff-card">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                        <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center font-mono text-amber-400 font-bold border border-slate-800 flex-shrink-0 relative">${e.photo ? `<img src="${e.photo}" class="w-full h-full rounded-xl object-cover absolute inset-0">` : (e.staffCode.split('-')[1] || '--')}</div>
+                        <div class="min-w-0"><h4 class="font-bold text-slate-200 truncate">${formatStaffFullName(e)} (${e.staffCode})</h4><p class="text-slate-400 text-[11px] truncate">${e.mobile || 'N/A'} | ${e.document || 'No doc'}</p><p class="text-slate-500 text-[10px] truncate">${e.address || 'No address'}</p></div>
+                    </div>
+                    <div class="flex gap-4 font-mono text-right flex-shrink-0">
+                        <div><p class="text-[10px] text-slate-500">Sales</p><p class="text-emerald-400 font-bold">₹${e.totalSales.toFixed(2)}</p></div>
+                        <div class="flex gap-1.5">
+                            <button onclick="event.stopPropagation(); startStaffEdit(${e.id})" class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-amber-400 hover:border-amber-500/50 transition-all"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                            <button onclick="event.stopPropagation(); removeStaffNode(${e.id})" class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-rose-400 hover:border-rose-500/50 transition-all"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        // ===================== STAFF CRUD =====================
+        function startStaffEdit(id) { editingStaffId = id;
+            renderStaffDirectory(); }
+
+        function cancelStaffEdit() { editingStaffId = null;
+            renderStaffDirectory(); }
+
+        function saveStaffEdit(id) {
+            const staff = staffRegistry.find(s => s.id === id);
+            if (!staff) return;
+            const newCode = document.getElementById(`edit-code-${id}`).value.trim();
+            const newLastName = document.getElementById(`edit-lastname-${id}`).value.trim();
+            const newMobile = document.getElementById(`edit-mobile-${id}`).value.trim();
+            const newDocument = document.getElementById(`edit-document-${id}`).value.trim();
+            const newAddress = document.getElementById(`edit-address-${id}`).value.trim();
+            const newSalary = parseFloat(document.getElementById(`edit-salary-${id}`).value);
+            const newComm = parseFloat(document.getElementById(`edit-comm-${id}`).value);
+            const newSales = parseFloat(document.getElementById(`edit-sales-${id}`).value);
+            if (!newCode) { alert('Code cannot be blank.'); return; }
+            if (staffRegistry.some(s => s.id !== id && s.staffCode === newCode)) { alert('Code already used.'); return; }
+            if (isNaN(newSalary) || newSalary < 0 || isNaN(newComm) || newComm < 0 || isNaN(newSales) || newSales < 0) { alert(
+                    'Invalid values.'); return; }
+            staff.staffCode = newCode;
+            staff.lastName = newLastName;
+            staff.mobile = newMobile;
+            staff.document = newDocument;
+            staff.address = newAddress;
+            staff.baseSalary = newSalary;
+            staff.commissionRate = newComm;
+            staff.totalSales = newSales;
+            editingStaffId = null;
+            renderStaffDirectory();
+            renderBillingStaffCards();
+            renderDetailsStaffCards();
+            renderPerfStaffCards();
+            initPerformanceGraph();
+            if (selectedPerfStaffId) loadPerformance(selectedPerfStaffId);
+            if (selectedDetailsStaffId) loadStaffDetails(selectedDetailsStaffId);
+        }
+
+        function removeStaffNode(id) {
+            const staff = staffRegistry.find(s => s.id === id);
+            if (!staff) return;
+            if (!confirm(`Remove ${formatStaffFullName(staff)}?`)) return;
+            staffRegistry = staffRegistry.filter(s => s.id !== id);
+            if (selectedStaffId === id) {
+                const remaining = staffRegistry.length ? staffRegistry[0].id : null;
+                selectedStaffId = remaining;
+                selectedStaffIds = remaining ? new Set([remaining]) : new Set();
+                activeStaffId = remaining;
+            }
+            Array.from(selectedServiceItems.entries()).forEach(([key, entry]) => {
+                if (entry.staffId === id) selectedServiceItems.delete(key);
+            });
+            if (editingStaffId === id) editingStaffId = null;
+            if (selectedDetailsStaffId === id) selectedDetailsStaffId = staffRegistry.length ? staffRegistry[0].id : null;
+            if (selectedPerfStaffId === id) selectedPerfStaffId = staffRegistry.length ? staffRegistry[0].id : null;
+            renderStaffDirectory();
+            renderBillingStaffCards();
+            renderDetailsStaffCards();
+            renderPerfStaffCards();
+            renderBillingServices();
+            calculateLiveBill();
+            initPerformanceGraph();
+            if (selectedDetailsStaffId) loadStaffDetails(selectedDetailsStaffId);
+            if (selectedPerfStaffId) loadPerformance(selectedPerfStaffId);
+        }
+
+        function createNewStaffNode(event) {
+            event.preventDefault();
+            const fn = document.getElementById('staffFn').value.trim();
+            const ln = document.getElementById('staffLn').value.trim();
+            if (!fn) { alert('First Name is required.'); return; }
+            const nextId = (staffRegistry.length ? Math.max(...staffRegistry.map(s => s.id)) : 0) + 1;
+            const code = `STF-${String(nextId).padStart(3, '0')}`;
+            staffRegistry.push({ id: nextId, staffCode: code, firstName: fn, lastName: ln, email: `${fn.toLowerCase()}@salon.com`,
+                baseSalary: 0, commissionRate: 0, totalSales: 0, mobile: '', document: '', address: '', photo: '',
+                invoices: [] });
+            document.getElementById('staffForm').reset();
+            renderStaffDirectory();
+            renderBillingStaffCards();
+            renderDetailsStaffCards();
+            renderPerfStaffCards();
+            selectedDetailsStaffId = nextId;
+            selectedPerfStaffId = nextId;
+            loadStaffDetails(nextId);
+            loadPerformance(nextId);
+            alert('Staff registered!');
+        }
+
+        // ===================== SERVICE CATALOG =====================
+        function renderCatalogDisplayOnly() {
+            const container = document.getElementById('servicesContainer');
+            if (!container) return;
+            if (systemServices.length === 0) {
+                container.innerHTML =
+                    '<p class="text-slate-400 text-sm col-span-2 text-center p-6">No services in catalog. Add one above.</p>';
+                return;
+            }
+            container.innerHTML = systemServices.map(i => `
+                <div class="glass p-3 rounded-xl flex justify-between items-center text-xs group">
+                    <div class="min-w-0 flex-1">
+                        <span class="text-[10px] text-amber-400 font-mono tracking-wider">[${i.gender} - ${i.category}]</span>
+                        <h4 class="font-semibold text-slate-200 mt-0.5 truncate">${i.name}</h4>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <span class="font-mono font-bold text-slate-300">₹</span>
+                        <input type="number" step="0.01" min="0" value="${i.rate}" data-id="${i.id}" onchange="updateServiceRate(${i.id}, this.value)" class="font-mono font-bold text-slate-300 bg-transparent text-right w-20 border-b border-dashed border-slate-600 focus:outline-none focus:border-amber-500 focus:text-amber-400">
+                        <button onclick="deleteService(${i.id})" class="service-delete-btn text-slate-500 hover:text-rose-400 transition-all px-1" title="Delete service">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function deleteService(id) {
+            const service = systemServices.find(s => s.id === id);
+            if (!service) return;
+            if (!confirm(`Delete "${service.name}" from the catalog?`)) return;
+            systemServices = systemServices.filter(s => s.id !== id);
+            Array.from(selectedServiceItems.entries()).forEach(([key, entry]) => {
+                if (entry.id === id) selectedServiceItems.delete(key);
+            });
+            renderCatalogDisplayOnly();
+            renderBillingServices();
+            calculateLiveBill();
+        }
+
+        function setNewServiceGender(gender) {
+            selectedNewServiceGender = gender;
+            const maleBtn = document.getElementById('new-service-gender-male');
+            const femaleBtn = document.getElementById('new-service-gender-female');
+            if (gender === 'MALE') { maleBtn.className =
+                    "flex-1 px-4 py-1.5 text-xs font-bold rounded-lg bg-amber-500 text-slate-950";
+                femaleBtn.className = "flex-1 px-4 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-100"; } else {
+                femaleBtn.className = "flex-1 px-4 py-1.5 text-xs font-bold rounded-lg bg-amber-500 text-slate-950";
+                maleBtn.className = "flex-1 px-4 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-100"; }
+        }
+
+        function createNewServiceNode(event) {
+            event.preventDefault();
+            const category = document.getElementById('newServiceCategory').value.trim();
+            const name = document.getElementById('newServiceName').value.trim();
+            const rate = parseFloat(document.getElementById('newServiceRate').value);
+            if (!category) { alert('Category is required.'); return; }
+            if (!name) { alert('Service name is required.'); return; }
+            if (isNaN(rate) || rate < 0) { alert('Invalid price.'); return; }
+            const nextId = Math.max(...systemServices.map(s => s.id), 0) + 1;
+            systemServices.push({ id: nextId, name, rate, category, subCategory: '', gender: selectedNewServiceGender });
+            document.getElementById('serviceForm').reset();
+            setNewServiceGender('MALE');
+            renderCatalogDisplayOnly();
+            renderBillingServices();
+        }
+
+        function updateServiceRate(id, newRateValue) {
+            const rate = parseFloat(newRateValue);
+            const service = systemServices.find(s => s.id === id);
+            if (!service) return;
+            if (isNaN(rate) || rate < 0) { alert('Invalid price.');
+                renderCatalogDisplayOnly(); return; }
+            service.rate = rate;
+            selectedServiceItems.forEach((entry, key) => {
+                if (entry.id === id) { entry.rate = rate;
+                    selectedServiceItems.set(key, entry); }
+            });
+            calculateLiveBill();
+            renderCatalogDisplayOnly();
+            renderBillingServices();
+        }
+
+        // ===================== CLIENT INFO =====================
+        function saveClientInfo(e) {
+            e.preventDefault();
+            const name = document.getElementById('clientName').value.trim();
+            const dob = document.getElementById('clientDob').value;
+            const mobile = document.getElementById('clientMobile').value.trim();
+
+            if (!name) { alert('Client name is required.'); return; }
+            if (!dob) { alert('Date of birth is required.'); return; }
+            if (!mobile || mobile.length < 10) { alert('Please enter a valid mobile number.'); return; }
+
+            savedClients.push({ name, dob, mobile });
+            renderSavedClients();
+
+            const feedback = document.getElementById('clientInfoFeedback');
+            feedback.textContent = `✅ Client "${name}" saved successfully!`;
+            feedback.classList.remove('hidden');
+            feedback.classList.add('text-emerald-400');
+
+            document.getElementById('clientInfoForm').reset();
+            setTimeout(() => { feedback.classList.add('hidden'); }, 3000);
+        }
+
+        function renderSavedClients() {
+            const display = document.getElementById('clientsDisplay');
+            if (!display) return;
+            if (savedClients.length === 0) {
+                display.innerHTML = '<p class="text-slate-500">No clients saved yet.</p>';
+                return;
+            }
+            display.innerHTML = savedClients.map((c, idx) =>
+                `<div class="flex justify-between items-center border-b border-slate-800/50 pb-1">
+                    <span><span class="text-amber-400">${c.name}</span> (${c.mobile})</span>
+                    <span class="text-slate-500 text-[10px]">${c.dob}</span>
+                </div>`
+            ).join('');
+        }
+
+        // ===================== DASHBOARD CHART =====================
+        function initPerformanceGraph() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: staffRegistry.map(e => `${e.firstName} (${e.staffCode})`),
+                    datasets: [
+                        { label: 'Sales (₹)', data: staffRegistry.map(e => e.totalSales), backgroundColor: '#f59e0b',
+                            borderRadius: 6 },
+                        { label: 'Commission (₹)', data: staffRegistry.map(e => e.totalSales * (e.commissionRate /
+                                100)), backgroundColor: '#10b981', borderRadius: 6 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 } } } },
+                    scales: { x: { grid: { color: 'rgba(255,255,255,0.02)' }, ticks: { color: '#94a3b8',
+                                font: { size: 10 } } }, y: { grid: { color: 'rgba(255,255,255,0.04)' },
+                            ticks: { color: '#94a3b8', font: { size: 10 } } } }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
